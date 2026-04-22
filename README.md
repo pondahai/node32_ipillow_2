@@ -62,3 +62,30 @@
 *   `drainAllChambers()` / `drainMonitorChamber()`: 執行排氣程序。
 *   `fillMonitorChamber()` / `fillNeckChamber()` / `fillHeadChamber()`: 執行初始充氣程序。
 *   `adjustHeight()`: 根據目標高度與當前高度的差異，計算所需的充/排氣時間並執行調整。
+
+## 4. Bluetooth 命令集 (Bluetooth Command Set)
+
+系統透過藍牙串列埠接收指令，格式通常為以逗號分隔的字串。
+
+| 指令類別 | 指令格式 | 參數說明 | 功能描述 |
+| :--- | :--- | :--- | :--- |
+| **系統控制** | `RESET` | 無 | 觸發 `DRAIN_ALL` 狀態，排除所有氣體。 |
+| | `MODE` | `(NORM 或 BEAU)` | 切換模式並回應 OK。 |
+| | `SYNCTIME,timestamp` | `timestamp`: Unix 時間戳 | 同步 ESP32 系統時間。 |
+| **模式切換** | `MANUAL` | 無 | 進入手動控制模式。 |
+| | `EXPERIMENT,OK` | 無 | 啟動實驗模式，允許更多數據輸出。 |
+| **手動操作** | `S,index,state` | `index`: 1-6 (s1-s6)<br>`state`: 0 (關), 1 (開) | 在 `MANUAL` 模式下直接控制閥門與馬達。 |
+| | `MOTORPWM,value` | `value`: 0-255 | 設定馬達 PWM 佔空比（控制轉速）。 |
+| **數據設定** | `USER,g,a,h,w` | `g`: 性別 (0:女, 1:男)<br>`a`: 年齡, `h`: 身高, `w`: 體重 | 設定使用者資料並計算建議高度。 |
+| | `SET,MONITOR,time` | `time`: 毫秒 | 設定監控室初始充氣時間。 |
+| | `SET,NECK,time` | `time`: 毫秒 | 設定頸部初始充氣時間。 |
+| | `SET,HEAD,time` | `time`: 毫秒 | 設定頭部初始充氣時間。 |
+| | `SET,NORM,X,HEAD,v` | `v`: 高度 (cm) | 直接設定目標頭部高度 (5-20cm)。 |
+| | `SET,NORM,X,NECK,v` | `v`: 高度 (cm) | 直接設定目標頸部高度 (5-20cm)。 |
+| **初始化** | `INIT,NORM,L` | 無 | 根據計算出的 `HLF/N1LF` 初始化高度並回傳詳細數據。 |
+| | `INIT,NORM,S` | 無 | 僅回應 `INIT,OK`。 |
+| | `INIT,BEAU` | 無 | 根據美容模式建議初始化高度。 |
+| **數據獲取** | `GET,INFT,ALL` | 無 | 獲取當前設定的所有初始充氣時間。 |
+| | `I` | 無 | 獲取當前系統狀態與閥門開關位元組。 |
+| | `P` | 無 | 獲取即時監控、頸部及頭部壓力數據。 |
+| | `DEBUG` | 無 | 獲取完整的系統內部變數與計算結果。 |
